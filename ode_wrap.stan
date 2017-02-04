@@ -5,6 +5,7 @@ functions {
 }
 data {
   int<lower=1> T;
+  // int<lower=0> K;
   real y0[2];
   real t0;
   real ts[T];
@@ -20,10 +21,4 @@ model {
 generated quantities {
   real y_hat[T,2];
   y_hat = integrate_ode_bdf(sho, y0, t0, ts, theta, x, x_int);
-
-  // add measurement error
-  # for(t in 1:T) {
-  #   y_hat[t,1] = y_hat[t,1] + normal_rng(0, 0.1);
-  #   y_hat[t,2] = y_hat[t,2] + normal_rng(0, 0.1);
-  # }
 }
