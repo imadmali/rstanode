@@ -1,6 +1,9 @@
 functions {
   real[] sho(real t, real[] y, real[] theta, real[] x, int[] x_int) {
-    #include "fun.stan"
+    real dy_dt[2];
+    dy_dt[1] = y[2];
+    dy_dt[2] = -y[1] - theta[1] * y[2];
+    return dy_dt;
   }
 }
 data {
