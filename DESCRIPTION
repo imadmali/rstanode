@@ -1,0 +1,9 @@
+Package: stanode
+Title: R wrapper for modeling ODEs in Stan.
+Version: 0.1
+Authors@R: person("Imad", "Ali", email = "imad.ali@columbia.edu", role = c("aut", "cre"))
+Description: R wrapper for modeling ODEs in Stan.
+Depends: R (>= 3.4.0)
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true

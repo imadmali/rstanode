@@ -36,12 +36,13 @@ stan_lines <- function(func, state, pars, times) {
   f_out <- clean_operator(f_out)
   map$lhs <- cbind("stan" = paste0("dydt[", 1:length(get_lhs(f_out)), "]"), "user" = get_lhs(f_out))
   f_out <- trans_vars(f_out, map)
+  f_out <- sapply(f_out, function(x) {paste0(x, ";")}, USE.NAMES = FALSE)
   return(f_out)
 }
 
 # extract and clean ode equations in user defined function
 clean_f <- function(obj) {
-  separate <- deparse(body(obj))
+  separate <- deparse(body(obj), width.cutoff = 500)
   separate <- gsub("[[:space:]]", "", separate)
   equations <- separate[-grep("[{}]", separate)]
   return_sel <- grep("return", equations)
@@ -103,21 +104,6 @@ trim <- function(eqn_line) {
   return(out)
 } 
 
-# convert ode functions to Stan syntax
-# trans_f <- function(x, n_theta, n_y) {
-#   out <- x
-#   for(j in 1:length(x)) {
-#     for (i in 1:n_y) {
-#       out[j] <- gsub("<-", "=", out[j])
-#       out[j] <- gsub(paste0("y",i), paste0("y[",i,"]"), out[j])
-#       out[j] <- gsub(paste0("dy\\[",i,"\\]"), paste0("dy_dt[",i,"]"), out[j])
-#     }
-#     for (k in 1:n_theta) {
-#       out[j] <- gsub(paste0("theta[",k,"]"), paste0("theta[",k,"]"), out[j])
-#     }
-#   }
-#   out
-# }
 
 stan_lines(f, state = c("y1" = 2, "y2" = 5), pars = c("theta1" = 0.5), times = seq(1,10,by=0.01))
 stan_lines(f2, state = c("y1" = 2, "y2" = 5, "y3" = 8),
