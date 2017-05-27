@@ -1,6 +1,6 @@
 functions {
   real[] sho(real t, real[] y, real[] theta, real[] x, int[] x_int) {
-    #include "func.stan"
+    #include "user_func.stan"
   }
 }
 data {
@@ -15,10 +15,8 @@ data {
   real theta[K];
 }
 transformed data {
-  if (sampling == 0) {
-    real x[0];
-    int x_int[0];
-  }
+  real x[(sampling == 0)? 0 : 1];
+  int x_int[(sampling == 0)? 0 : 1];
 }
 model {
 
