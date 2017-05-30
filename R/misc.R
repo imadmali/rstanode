@@ -2,12 +2,21 @@
 clean_f <- function(obj) {
   separate <- deparse(body(obj), width.cutoff = 500)
   separate <- gsub("[[:space:]]", "", separate)
-  equations <- separate[-grep("[{}]", separate)]
+  equations <- separate[-c(1,length(separate))]
+  with_sel <- grep("with", equations)
+  if (length(with_sel) > 0) {
+    equations <- equations[-c(with_sel, length(equations))]
+  }
   return_sel <- grep("return", equations)
-  if (length(return_sel)==0)
-    return(equations)
-  else
-    return(equations[-return_sel])
+  out <- list(ret = equations[return_sel])
+  if (length(return_sel)==0) {
+    out$equations <- equations
+    return(out)
+  }
+  else {
+    out$equations <- equations[-return_sel]
+    return(out)
+  }
 }
 
 # cleanup assignment operator
@@ -20,9 +29,12 @@ clean_operator <- function(eqn) {
 }
 
 # get the derivatives with respect to time as defined by the user
-get_lhs <- function(eqn) {
-  eqn_split <- strsplit(eqn, "=")
-  lhs <- sapply(eqn_split, "[[", 1)
+get_lhs <- function(ret_string) {
+  ret_string <- gsub("([[:space:]])|(return)|(list)|(c)|(\\()|(\\))", "", ret_string)
+  ret_string_split <- unlist(strsplit(ret_string, ","))
+  lhs <- sapply(strsplit(c(ret_string_split), "="), "[[", 2)
+  #eqn_split <- strsplit(eqn, "=")
+  #lhs <- sapply(eqn_split, "[[", 1)
   return(lhs)
 }
 
@@ -60,4 +72,11 @@ swap <- function(eqn_trim, map) {
 trim <- function(eqn_line) {
   out <- unlist(strsplit(eqn_line, "(?<=[[:punct:]])", perl=TRUE))
   return(out)
+}
+
+# does a string end in a curly bracket
+curly <- function(eqn_str) {
+  len <- nchar(eqn_str)
+  last <- substr(eqn_str, len, len)
+  return(last %in% c("{", "}"))
 }

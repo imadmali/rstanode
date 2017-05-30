@@ -1,6 +1,6 @@
 ## stanode
 
-An ODE wrapper for [RStan](https://github.com/stan-dev/rstan) which takes a R function representation of an ODE system of equations and generates simulates via RStan
+An ODE wrapper for [RStan](https://github.com/stan-dev/rstan) which takes a R function representation of an ODE system of equations and generates simulates via RStan.
 
 ### Installation
 

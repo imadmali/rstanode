@@ -28,9 +28,11 @@ Workhorse function that inputs in the ODE system as an R function
 # EXAMPLE 1
 
 f1 <- function(y, t, p) {
+ with(as.list(c(y,parms)), {
   dy1 <- y2
   dy2 <- -y1 - theta1 * y2
-  return(dy1 = dy1, dy2 = dy2)
+  return(c(list(dy1 = dy1, dy2 = dy2)))
+ })
 }
 stan_lines(f1, state = c("y1" = 2, "y2" = 5),
            pars = c("theta1" = 0.5),

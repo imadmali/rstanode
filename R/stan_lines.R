@@ -13,9 +13,11 @@
 #' # EXAMPLE 1
 #'
 #' f1 <- function(y, t, p) {
+#'  with(as.list(c(y,parms)), {
 #'   dy1 <- y2
 #'   dy2 <- -y1 - theta1 * y2
-#'   return(dy1 = dy1, dy2 = dy2)
+#'   return(c(list(dy1 = dy1, dy2 = dy2)))
+#'  })
 #' }
 #' stan_lines(f1, state = c("y1" = 2, "y2" = 5),
 #'            pars = c("theta1" = 0.5),
@@ -53,10 +55,17 @@ stan_lines <- function(func, state, pars, times) {
               pars = cbind("stan" = paste0("theta[", 1:length(pars_names), "]"), "user" = pars_names),
               n_states = length(state_names),
               n_pars= length(pars_names))
-  f_out <- clean_f(func)
+  f_stuff <- clean_f(func) 
+  f_out <- f_stuff$equations
   f_out <- clean_operator(f_out)
-  map$lhs <- cbind("stan" = paste0("dydt[", 1:length(get_lhs(f_out)), "]"), "user" = get_lhs(f_out))
+  map$lhs <- cbind("stan" = paste0("dydt[", 1:length(get_lhs(f_stuff$ret)), "]"), "user" = get_lhs(f_stuff$ret))
   f_out <- trans_vars(f_out, map)
-  f_out <- sapply(f_out, function(x) {paste0("    ", x, ";")}, USE.NAMES = FALSE)
+  f_out <- sapply(f_out,
+                  function(x) {
+                    if (curly(x))
+                      x
+                    else
+                      paste0("    ", x, ";")
+                    }, USE.NAMES = FALSE)
   return(f_out)
 }
