@@ -20,7 +20,8 @@ stan_ode_generate <- function(obj) {
                 obj,
                 "    return dydt;")
   out <- c(stan_wrapper[upr], ode_eqns, stan_wrapper[lwr])
-  tmp_fname <- tempfile(tmpdir = "", fileext = ".stan")
-  writeLines(out, paste0(getwd(), tmp_fname))
-  return(c(tmp_fname = tmp_fname))
+  # tmp_fname <- tempfile(tmpdir = "", fileext = ".stan")
+  # writeLines(out, paste0(getwd(), tmp_fname))
+  # return(c(tmp_fname = tmp_fname))
+  return(paste(out, collapse = "\n"))
 }
