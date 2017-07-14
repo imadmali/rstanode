@@ -6,9 +6,12 @@
 #' visually appealing version to be used with \code{cat()}.
 #' @export
 
-stan_ode_generate <- function(obj) {
+stan_ode_generate <- function(obj, has_events) {
   n_eqn <- length(obj)
-  path <- system.file(package = "stanode", "ode_wrap.stan")
+  if (has_events == FALSE)
+    path <- system.file(package = "stanode", "ode_wrap.stan")
+  else
+    path <- system.file(package = "stanode", "ode_wrap_events.stan")
   stan_wrapper <- readLines(path)
   
   sel <- which(stan_wrapper == "    #include \"user_func.stan\"")

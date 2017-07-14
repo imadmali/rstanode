@@ -9,22 +9,43 @@ data {
   int<lower=0> N;
   int<lower=0> K;
   int<lower=1> T;
-  real y0[N];
-  real t0;
-  real ts[T];
-  real theta[K];
+  real y0[N];  // y[1];
+  real ts[T];  // time[T];
+  real theta[K]; // theta[1];
+  int n_seg;
+  real t0[n_seg];  // t0[n_seg];
+  int seg[n_seg];
+  int sequence[T];
+  int n_events;
+  real events[n_events,N];
 }
 transformed data {
-  real x[(sampling == 0)? 0 : 1];
-  int x_int[(sampling == 0)? 0 : 1];
+  real x[(sampling == 0)? 0 : 1];     // incorrect condition if sampling = TRUE? x_r[0];
+  int x_int[(sampling == 0)? 0 : 1];  // incorrect condition if sampling = TRUE? x_i[0];
 }
 model {
-
 }
 generated quantities {
   real y_hat[T,N];
-  if (integrator == 0)
-    y_hat = integrate_ode_rk45(sho, y0, t0, ts, theta, x, x_int);
-  else
-    y_hat = integrate_ode_bdf(sho, y0, t0, ts, theta, x, x_int);
+  if (integrator == 0) {
+    {
+      int pos;
+      pos = 1;
+      for (i in 1:n_seg) {
+        int indx[size(segment(sequence, pos, seg[i]))];
+        real y_init[N];
+        indx = segment(sequence, pos, seg[i]);
+        if (i== 1)
+          y_init = y0;
+        else {
+          y_init = to_array_1d(to_vector(y_hat[pos - 1,]) + to_vector(events[i-1,]));
+        }
+        y_hat[indx,] = integrate_ode_rk45(sho, y_init, t0[i], ts[indx], theta, x, x_int);
+        pos = pos + seg[i];
+      }
+    }
+  }
+  else {
+    reject("bdf not supported")
+  }
 }

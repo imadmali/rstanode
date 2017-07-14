@@ -1,5 +1,5 @@
 functions {
-  real[] sho(real t, real[] y, real[] theta, real[] x, int[] x_int) {
+  real[] ode(real t, real[] y, real[] theta, real[] x, int[] x_int) {
     #include "user_func.stan"
   }
 }
@@ -24,7 +24,7 @@ model {
 generated quantities {
   real y_hat[T,N];
   if (integrator == 0)
-    y_hat = integrate_ode_rk45(sho, y0, t0, ts, theta, x, x_int);
+    y_hat = integrate_ode_rk45(ode, y0, t0, ts, theta, x, x_int);
   else
-    y_hat = integrate_ode_bdf(sho, y0, t0, ts, theta, x, x_int);
+    y_hat = integrate_ode_bdf(ode, y0, t0, ts, theta, x, x_int);
 }

@@ -43,16 +43,18 @@
 #'@export
 
 stan_ode <- function(func, state, pars, times, t0 = NULL,
-                    integrator = c("rk45", "bdf"), sampling = FALSE, ...) {
+                    integrator = c("rk45", "bdf"), sampling = FALSE,
+                    events = NULL, ...) {
   # checks
   if (is.null(t0))
     t0 <- times[1] - 1e-6
   if (t0 >= times[1])
     stop("t0 must be less than times[1]")
-  
+
   # create stan program
   stan_ode_eqns <- stan_lines(func, state, pars, times)
-  stan_prog <- stan_ode_generate(stan_ode_eqns)
+  stan_prog <- stan_ode_generate(stan_ode_eqns,
+                                 has_events = ifelse(is.null(events), FALSE, TRUE))
   
   # create stan data
   if (integrator == "rk45")

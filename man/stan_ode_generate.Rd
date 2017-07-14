@@ -4,7 +4,7 @@
 \alias{stan_ode_generate}
 \title{stan_ode_generate}
 \usage{
-stan_ode_generate(obj)
+stan_ode_generate(obj, has_events)
 }
 \arguments{
 \item{obj}{Output of \code{stan_lines()}.}
