@@ -1,5 +1,5 @@
 ---
-title: "How to Use the stanode Package"
+title: "How to Use the rstanode Package"
 author: "Imad Ali"
 date: "`r Sys.Date()`"
 output: 
@@ -147,4 +147,6 @@ lines(sims[,1], sims[,4], col = "#FF6688")
 legend("topright", c("deSolve","stanode"), col = c("#808080", "#FF6688"), lwd = c(3, 1))
 ```
 
+
+## Arenstorf Orbits
 

@@ -1,4 +1,4 @@
-Package: stanode
+Package: rstanode
 Title: R wrapper for modeling ODEs in Stan.
 Version: 0.1
 Authors@R: person("Imad", "Ali", email = "imad.ali@columbia.edu", role = c("aut", "cre"))
