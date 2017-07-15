@@ -1,6 +1,9 @@
 functions {
   real[] ode_sys(real t, real[] y, real[] theta, real[] x, int[] x_int) {
-    #include "user_func.stan"
+    // AUTO GENERATED CODE
+    real dydt[1];
+    dydt[1]=-theta[1]*y[1];
+    return dydt;
   }
 }
 data {

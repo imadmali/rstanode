@@ -4,13 +4,12 @@ functions {
   }
 }
 data {
-  int<lower=0,upper=1> integrator;
   int<lower=0,upper=1> sampling;
   int<lower=0> N;
   int<lower=0> K;
   int<lower=1> T;
   real y0[N];
-  real t0;
+  real t0[1];
   real ts[T];
   real theta[K];
 }
@@ -21,5 +20,5 @@ transformed data {
 model {}
 generated quantities {
   real y_hat[T,N];
-  y_hat = integrate_ode_bdf(ode_sys, y0, t0, ts, theta, x, x_int);
+  y_hat = integrate_ode_bdf(ode_sys, y0, t0[1], ts, theta, x, x_int);
 }
