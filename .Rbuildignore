@@ -4,4 +4,5 @@
 ^.*\.R$
 ^.*\.Rmd$
 ^.*\.html$
+.travis.yml
 LICENSE
