@@ -79,6 +79,8 @@ stan_ode <- function(func, state, pars, times, t0 = NULL,
                     integrator = c("rk45", "bdf"), sampling = FALSE,
                     events = NULL, ...) {
   
+  integrator <- match.arg(integrator)
+  
   # deal with start times
   t0_accuracy <- 1e-6
   if (is.null(t0)) {
@@ -92,7 +94,8 @@ stan_ode <- function(func, state, pars, times, t0 = NULL,
   stan_ode_eqns <- stan_lines(func, state, pars, times)
   stan_prog <- stan_ode_generate(stan_ode_eqns,
                                  has_events = ifelse(is.null(events), FALSE, TRUE),
-                                 integrator = integrator)
+                                 integrator = integrator,
+                                 n_states = length(state))
 
   # create stan data
   N = length(state)

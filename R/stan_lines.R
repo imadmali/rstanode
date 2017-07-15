@@ -63,7 +63,11 @@ stan_lines <- function(func, state, pars, times) {
   f_out <- f_stuff$equations
   f_out <- clean_operator(f_out)
   map$lhs <- cbind("stan" = paste0("dydt[", 1:length(get_lhs(f_stuff$ret)), "]"), "user" = get_lhs(f_stuff$ret))
+  map$other <- get_other_vars(f_out, map)
   f_out <- trans_vars(f_out, map)
+  if (!is.null(map$other)) {
+    f_out <- append(f_out, create_other_vars(map$other), 0)
+  }
   f_out <- sapply(f_out,
                   function(x) {
                     if (curly(x))

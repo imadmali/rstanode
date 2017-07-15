@@ -75,7 +75,7 @@ legend("bottomleft", c("deSolve","stanode"), col = c("#808080", "#FF6688"), lwd 
 ```
 
 
-## A PKPD Model
+## PKPD Model
 
 The stanode package also supports events. Specifically, the user provides an event table to which describes the **time** the event takes place, the value that each **state** should take on at the specfied state, and the **method** to use (currently `"add"` and `"multiply"` are supported).
 
