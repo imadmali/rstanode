@@ -1,2 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^.*\.stan$
+^.*\.R$
+^.*\.Rmd$
+^.*\.html$
+LICENSE

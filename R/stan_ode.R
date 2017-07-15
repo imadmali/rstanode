@@ -13,7 +13,7 @@
 #' @param integrator The type of integrator to use.
 #' @param events A dataframe that defines the event schedule in the ODE system.
 #' See details below.
-#' @param ... Optional parameters for \code{\link[rstan]{stan}.
+#' @param ... Optional parameters for \code{\link[rstan]{stan}}.
 #' @return A list that contains the simulations and the \code{stanfit} object.
 #' 
 #' @details Currently the user cannot use the event dataframe used in \code{\link[deSolve]{ode}}.
@@ -41,8 +41,9 @@
 #' 20 \tab 1.5 \tab 1 \tab ... \tab multiply\cr
 #' 30 \tab 1.5 \tab 1 \tab ... \tab multiply
 #' }
-#' @seealso \code{\link[deSolve]{ode}, \code{\link[rstan]{stan}
+#' @seealso \code{\link[deSolve]{ode}}, \code{\link[rstan]{stan}}.
 #' @examples 
+#' \dontrun{
 #' # Simple ODE
 #' f <- function(y, t, p) {
 #'   dy1 <- y2
@@ -73,6 +74,7 @@
 #' sims <- extract(fit, pars = "y_hat")$y_hat[1,,]
 #' plot(sims[,1], sims[,2], type = "l", lwd = 2,
 #'      xlab = "y1", ylab = "y2", main = "Simple Harmonic Oscillator")
+#'}
 #'@export
 
 stan_ode <- function(func, state, pars, times, t0 = NULL,

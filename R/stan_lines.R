@@ -12,6 +12,7 @@
 #' @details See \code{\link{stan_ode}} for details on function arguments.
 #' @seealso \code{\link{stan_ode_generate}}.
 #' @examples
+#' \dontrun{
 #' # EXAMPLE 1
 #'
 #' f1 <- function(y, t, p) {
@@ -49,7 +50,7 @@
 #' stan_lines(f3, state = c("y1" = 2, "y2" = 5),
 #'            pars = c("theta1" = 0.5, "theta2" = 0.2),
 #'            times = seq(1,10,by=0.01))
-#' 
+#' }
 #' @export
 
 stan_lines <- function(func, state, pars, times) {

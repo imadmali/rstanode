@@ -41,8 +41,10 @@ clean_operator <- function(eqn) {
 #' @return A character vector whose elements contain the names of the state
 #' variables derived with resepect to time.
 #' @examples
+#' \dontrun{
 #' ret_call <- "return(list(c(dy1,dy2,dy3,dy4)))"
 #' get_lhs(ret_call)
+#' }
 get_lhs <- function(ret_string) {
   uses_equals <- grepl("\\=", ret_string)
   ret_string <- gsub("([[:space:]])|(return)|(list)|(c\\()|(\\()|(\\))", "", ret_string)
@@ -124,7 +126,7 @@ swap <- function(eqn_trim, map) {
 #' @description Determine whether an element of a character vector contains
 #' an integer. If it does then replace it with its real value analogue.
 #' @param x A character vector. Specifically the object returned by
-#' \code{\link{trim}}.
+#' \code{rstanode::trim}.
 #' @return A character vector whose integer values have been converted to
 #' their real value analogue.
 int2real <- function(x) {

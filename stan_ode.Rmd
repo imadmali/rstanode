@@ -20,8 +20,8 @@ Unfortunately, due to the user-defined nature ODE system it is not possible for 
 
 Load the **stanode** package and the **deSolve** package (for comparison).
 
-```{r, results='hide'}
-library(stanode)
+```{r, results='hide', warning=FALSE, message=FALSE}
+library(rstanode)
 library(deSolve)
 rstan::rstan_options(auto_write = TRUE)
 ```
@@ -149,4 +149,48 @@ legend("topright", c("deSolve","stanode"), col = c("#808080", "#FF6688"), lwd = 
 
 
 ## Arenstorf Orbits
+
+```{r}
+Arenstorf <- function(t, y, p) {
+  with(as.list(c(y,p)), {
+    D1 <- ((y[1] + mu1)^2 + y[2]^2)^(3/2)
+    D2 <- ((y[1] - mu2)^2 + y[2]^2)^(3/2)
+    dy1 <- y[3]
+    dy2 <- y[4]
+    dy3 <- y[1] + 2*y[4] - mu2*(y[1]+mu1)/D1 - mu1*(y[1]-mu2)/D2
+    dy4 <- y[2] - 2*y[3] - mu2*y[2]/D1 - mu1*y[2]/D2
+    return(list( c(dy1, dy2, dy3, dy4) ))
+  })
+}
+```
+
+Simulate in deSolve.
+
+```{r}
+mu1 <- 0.012277471
+pars <- c(mu1 = mu1, mu2 = 1 - mu1)
+yini <- c(y1 = 0.994, y2 = 0,
+          y3 = 0, y4 = -2.00158510637908252240537862224)
+time_steps <- seq(from = 0, to = 18, by = 0.01)
+orbit_deSolve <- ode(func = Arenstorf, y = yini, parms = pars, times = time_steps)
+```
+
+Simulate in rstanode.
+
+```{r, results='hide'}
+orbit_rstanode <- stan_ode(Arenstorf,
+                           yini,
+                           pars,
+                           time_steps,
+                           integrator = "rk45")
+sims <- orbit_rstanode$simulations
+```
+
+Overlay both simulations.
+
+```{r, fig.show='hold', fig.align='center', fig.height=6, fig.width=6}
+plot(orbit_deSolve[,2], orbit_deSolve[,3], type = "l", col = "#808080", lwd = 3)
+lines(sims[,2], sims[,3], col = "#FF6688")
+legend("bottomleft", c("deSolve","stanode"), col = c("#808080", "#FF6688"), lwd = c(3, 1))
+```
 

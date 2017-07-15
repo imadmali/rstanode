@@ -1,4 +1,4 @@
 library(testthat)
-library(stanode)
+library(rstanode)
 
-test_check("stanode")
+test_check("rstanode")

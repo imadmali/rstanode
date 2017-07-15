@@ -1,4 +1,4 @@
-library(stanode)
+library(rstanode)
 library(deSolve)
 
 context("Test the components that constitute the parser (R to Stan)")
@@ -118,5 +118,37 @@ test_that("stan_lines parses assignment operator within ODE", {
                    times = time_steps)
   truth <- c("    dydt[1]=-theta[1]*y[1];",
              "    dydt[2]=theta[1]*y[1]-theta[2]*y[2];")
+  expect_equivalent(sl, truth)
+})
+
+test_that("stan_lines parses user defined functions within ODE", {
+  Arenstorf <- function(t, y, p) {
+    with(as.list(c(y,p)), {
+      D1 <- ((y[1] + mu1)^2 + y[2]^2)^(3/2)
+      D2 <- ((y[1] - mu2)^2 + y[2]^2)^(3/2)
+      dy1 <- y[3]
+      dy2 <- y[4]
+      dy3 <- y[1] + 2*y[4] - mu2*(y[1]+mu1)/D1 - mu1*(y[1]-mu2)/D2
+      dy4 <- y[2] - 2*y[3] - mu2*y[2]/D1 - mu1*y[2]/D2
+      return(list( c(dy1, dy2, dy3, dy4) ))
+    })
+  }
+  
+  mu1 <- 0.012277471
+  pars <- c(mu1 = mu1, mu2 = 1 - mu1)
+  yini <- c(y1 = 0.994, y2 = 0,
+            y3 = 0, y4 = -2.00158510637908252240537862224)
+  time_steps <- seq(from = 0, to = 18, by = 0.01)
+  sl <- stan_lines(Arenstorf, state = yini,
+                   pars = pars,
+                   times = time_steps)
+  truth <- c("    real D1;",                                                                     
+             "    real D2;",                                                                     
+             "    D1=((y[1]+theta[1])^2.0+y[2]^2.0)^(3.0/2.0);",                                  
+             "    D2=((y[1]-theta[2])^2.0+y[2]^2.0)^(3.0/2.0);",                                 
+             "    dydt[1]=y[3];",                                 
+             "    dydt[2]=y[4];",                                                                
+             "    dydt[3]=y[1]+2.0*y[4]-theta[2]*(y[1]+theta[1])/D1-theta[1]*(y[1]-theta[2])/D2;",
+             "    dydt[4]=y[2]-2.0*y[3]-theta[2]*y[2]/D1-theta[1]*y[2]/D2;")
   expect_equivalent(sl, truth)
 })

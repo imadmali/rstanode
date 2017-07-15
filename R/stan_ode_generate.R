@@ -3,7 +3,8 @@
 #' \code{\link{stan_lines}}.
 #' @param obj Output of \code{stan_lines}.
 #' @param has_events A logical value that indicates whether or not the model contains events.
-#' @param integrator The type of integrator to use. One of either \code{"rk45"} or \code{"bdf"}. 
+#' @param integrator The type of integrator to use. One of either \code{"rk45"} or \code{"bdf"}.
+#' @param n_states Number of states in the ODE system. 
 #' @return A string with the Stan model which can be used in \code{\link[rstan]{stan}}. A more
 #' readable representation of the model can be constructed by applying the
 #' \code{\link[base]{cat}} function to the output.
@@ -27,7 +28,7 @@
 #'                  pars = pars,
 #'                  times = time_steps)
 #' # Generate the useable Stan file
-#' cat(stan_ode_generate(sl, has_events = TRUE, integrator = "rk45"))
+#' cat(stan_ode_generate(sl, has_events = TRUE, integrator = "rk45", n_states = 3))
 #'                 
 #' @export
 
