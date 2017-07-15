@@ -5,8 +5,10 @@ cache: packages
 r_build_args: '--no-build-vignettes'
 
 r_packages:
-  - rstan
   - covr
+
+before_install:
+  - Rscript -e 'install.packages("rstan", dependencies = TRUE)'
 
 after_success:
   - Rscript -e 'covr::codecov()'
