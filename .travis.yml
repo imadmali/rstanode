@@ -5,6 +5,7 @@ cache: packages
 r_build_args: '--no-build-vignettes'
 
 r_packages:
+  - rstan
   - covr
 
 after_success:
