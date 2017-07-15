@@ -3,4 +3,3 @@
 export(stan_lines)
 export(stan_ode)
 export(stan_ode_generate)
-export(stanode)

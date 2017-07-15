@@ -3,13 +3,14 @@ title: "How to Use the stanode Package"
 author: "Imad Ali"
 date: "`r Sys.Date()`"
 output: 
-  html_vignette: 
+  html_document: 
+    theme: cerulean
     toc: yes
 ---
 
 ## Introduction
 
-The purpose of this package is to allow users to simulate and estimate the parameters from a system of ordinary differential equations (ODE) in Stan while not having to write Stan code.
+The purpose of this package is to allow users to simulate and estimate the parameters from a system of ordinary differential equations (ODE) in Stan while not having to write Stan code. Events are supported by providing an event data frame.
 
 Unfortunately, due to the user-defined nature ODE system it is not possible for the Stan model to be precompiled. Thus some compile time will be involve when simulating/fitting the model specified by the user.
 
@@ -19,7 +20,7 @@ Unfortunately, due to the user-defined nature ODE system it is not possible for 
 
 Load the **stanode** package and the **deSolve** package (for comparison).
 
-```{r}
+```{r, results='hide'}
 library(stanode)
 library(deSolve)
 rstan::rstan_options(auto_write = TRUE)
@@ -27,7 +28,15 @@ rstan::rstan_options(auto_write = TRUE)
 
 ## Simple Harmonic Oscillator
 
-In deSolve we can fit a Simple Harmonic Oscillator as follows,
+The mathematical representation of a simple harmonic oscillator ODE is,
+$$
+\begin{align}
+dy_1 &= y_2 \\
+dy_2 &= -y_1 -\theta \cdot y_2
+\end{align}
+$$
+
+In deSolve we can fit a simple harmonic oscillator as follows,
 
 ```{r}
 # specify the ODE
@@ -66,7 +75,7 @@ legend("bottomleft", c("deSolve","stanode"), col = c("#808080", "#FF6688"), lwd 
 ```
 
 
-## PKPD Model
+## A PKPD Model
 
 The stanode package also supports events. Specifically, the user provides an event table to which describes the **time** the event takes place, the value that each **state** should take on at the specfied state, and the **method** to use (currently `"add"` and `"multiply"` are supported).
 
@@ -82,19 +91,16 @@ two_cpt <- function(t, y, parms) {
   })
 }
 dosing_table <- data.frame(var = "y_gut",
-                           time = seq(0, 70, by=10),
+                           time = seq(10, 70, by=10),
                            value = 5,
                            method = "add")
 pars <- c("CL" = 10, Q = 13, "V_cent" = 20, "V_peri" = 73, ka = 3)
 yini <- c("y_gut" = 0, "y_cent" = 0, "y_peri" = 0)
-time_steps <- seq(0, 150, by = 0.01)
+time_steps <- seq(0, 150, by = 0.005)
 two_cpt_deSolve <- deSolve::ode(y = yini, times = time_steps, func = two_cpt, parms = pars,
                                 events = list(data = dosing_table))
 ```
 
-```{r, fig.show='hold', fig.align='center', fig.height=6, fig.width=6}
-plot(two_cpt_deSolve)
-```
 
 To fit the model in stanode we need to specify the event table,
 
@@ -107,7 +113,7 @@ print(dosing_table_stan)
 
 Now we can simulate the model,
 
-```{r}
+```{r, results='hide'}
 two_cpt_stanode <- stan_ode(two_cpt, state = yini,
                             pars = pars,
                             times = time_steps,
@@ -119,34 +125,26 @@ sims <- two_cpt_stanode$simulations
 
 Below we plot the simulations for each compartment from both packages.
 
-**Gut Compartment**
+```{r, fig.show='hold', fig.align='center', fig.height=4, fig.width=10}
+par(mfrow = c(1,3))
 
-```{r, fig.show='hold', fig.align='center', fig.height=6, fig.width=6}
 plot(two_cpt_deSolve[,1], two_cpt_deSolve[,2], col = "#808080", lwd = 3,
      type = "l",
      main = "Gut Compartment", xlab = "Time", ylab = "Concentration")
 lines(sims[,1], sims[,2], col = "#FF6688")
-legend("bottomright", c("deSolve","stanode"), col = c("#808080", "#FF6688"), lwd = c(3, 1))
-```
+legend("topright", c("deSolve","stanode"), col = c("#808080", "#FF6688"), lwd = c(3, 1))
 
-**Central Compartment**
-
-```{r, fig.show='hold', fig.align='center', fig.height=6, fig.width=6}
 plot(two_cpt_deSolve[,1], two_cpt_deSolve[,3], col = "#808080", lwd = 3,
      type = "l",
      main = "Central Compartment", xlab = "Time", ylab = "Concentration")
 lines(sims[,1], sims[,3], col = "#FF6688")
-legend("bottomright", c("deSolve","stanode"), col = c("#808080", "#FF6688"), lwd = c(3, 1))
-```
+legend("topright", c("deSolve","stanode"), col = c("#808080", "#FF6688"), lwd = c(3, 1))
 
-**Peripheral Compartment**
-
-```{r, fig.show='hold', fig.align='center', fig.height=6, fig.width=6}
 plot(two_cpt_deSolve[,1], two_cpt_deSolve[,4], col = "#808080", lwd = 3,
      type = "l",
      main = "Peripheral Compartment", xlab = "Time", ylab = "Concentration")
 lines(sims[,1], sims[,4], col = "#FF6688")
-legend("bottomright", c("deSolve","stanode"), col = c("#808080", "#FF6688"), lwd = c(3, 1))
+legend("topright", c("deSolve","stanode"), col = c("#808080", "#FF6688"), lwd = c(3, 1))
 ```
 
 

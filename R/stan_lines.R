@@ -9,6 +9,8 @@
 #' @param times A sequence of time steps.
 #' @return A a string vector whose elements are equations of the R ODE system
 #' translated into Stan syntax.
+#' @details See \code{\link{stan_ode}} for details on function arguments.
+#' @seealso \code{\link{stan_ode_generate}}.
 #' @examples
 #' # EXAMPLE 1
 #'
@@ -29,6 +31,7 @@
 #'   dy1 <- theta1 * y1 + y2 * y3
 #'   dy2 <- theta2 * (y2 - y3)
 #'   dy3 <- -y1*y2 + (theta3)^2*y2 - y3
+#'   return(c(dy1=dy1, dy2=dy2, dy3=dy3))
 #' }
 #' stan_lines(f2, state = c("y1" = 2, "y2" = 5, "y3" = 8),
 #'            pars = c("theta1" = 0.5, "theta2" = 0.2, "theta3" = 0.8),
@@ -41,6 +44,7 @@
 #'   dy2 <- ((y1 - theta2)^2 + y2^2)^(3/2)
 #'   dy3 <- y1 + 2*dy2 - theta2 * ((y1 + theta1)/dy1) - theta1 * ((y1 - theta2)/ dy2)
 #'   dy4 <- y2 - 2*dy1 - theta2 * (y2/dy1) - theta1 * (y2/dy2)
+#'   return(c(dy1=dy1, dy2=dy2, dy3=dy3, dy4=dy4))
 #' }
 #' stan_lines(f3, state = c("y1" = 2, "y2" = 5),
 #'            pars = c("theta1" = 0.5, "theta2" = 0.2),

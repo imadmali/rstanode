@@ -1,15 +1,48 @@
-#' stan_ode
-#' @description An ODE wrapper for RStan.
-#' @param func A function (currently if-else statements are not supported).
+#' Simulating/Fitting ODE Systems via Stan
+#' @description Ordinary differential equation (ODE) simulation and parameter estimation.
+#' The behavior is similar to the \code{\link[deSolve]{ode}} function in the \pkg{deSolve} package.
+#' Particularly, the user may use the same ODE function, inital state values, parameter values
+#' used in \code{ode}.
+#' @param func A function (currently \code{if-else} statements are not supported).
 #' @param state A named vector of the initial conditions of the state variables.
 #' @param pars A named vector of the parameter values.
 #' @param times A sequence of time steps.
-#' @param t0 Initial time.
+#' @param t0 Initial time. The default (\code{NULL}) is \code{t0 = times[1] - 1e-6}
+#' @param sampling A logical declaration as to whether you want sample the parameters or
+#' initial state values. The default is \code{FALSE}.
 #' @param integrator The type of integrator to use.
-#' @param sampling A logical declaration as to whether you want sample the parameters.
-#' @param ... Optional parameters for \code{rstan::stan()}.
-#' @return A Stan fit object containing ODE simulations/samples.
-#' @examples
+#' @param events A dataframe that defines the event schedule in the ODE system.
+#' See details below.
+#' @param ... Optional parameters for \code{\link[rstan]{stan}.
+#' @return A list that contains the simulations and the \code{stanfit} object.
+#' 
+#' @details Currently the user cannot use the event dataframe used in \code{\link[deSolve]{ode}}.
+#' The dimensions of the events dataframe equals [number of events] by [number of state variables
+#' + 2]. There must be a column denoting the \strong{time} of each event, the \strong{method} to
+#' apply to the state variables, and the \strong{value of each state} variable that the user
+#' wants to apply to the last simulated value using the aforementioned method.
+#' 
+#' Some examples of event schedules are provided below.
+#' The event schedule below is adding 5 to the last simulated state variable y1 in all events
+#' accept for the one at taking place time = 40 where 5 is being added to y1 \emph{and} 2 is
+#' being added to y2.
+#' \tabular{ccccc}{
+#' time \tab y1 \tab y2 \tab ... \tab method\cr
+#' 10 \tab 5 \tab 0 \tab ... \tab add\cr
+#' 20 \tab 5 \tab 0 \tab ... \tab add\cr
+#' 30 \tab 5 \tab 0 \tab ... \tab add\cr
+#' 40 \tab 5 \tab 2 \tab ... \tab add
+#' }
+#' The event schedule below is multiplying 1.5 with the last simulated value of y1 and leaving y2
+#' unchanged.
+#' \tabular{ccccc}{
+#' time \tab y1 \tab y2 \tab ... \tab method\cr
+#' 10 \tab 1.5 \tab 1 \tab ... \tab multiply\cr
+#' 20 \tab 1.5 \tab 1 \tab ... \tab multiply\cr
+#' 30 \tab 1.5 \tab 1 \tab ... \tab multiply
+#' }
+#' @seealso \code{\link[deSolve]{ode}, \code{\link[rstan]{stan}
+#' @examples 
 #' # Simple ODE
 #' f <- function(y, t, p) {
 #'   dy1 <- y2
@@ -60,7 +93,7 @@ stan_ode <- function(func, state, pars, times, t0 = NULL,
   stan_prog <- stan_ode_generate(stan_ode_eqns,
                                  has_events = ifelse(is.null(events), FALSE, TRUE),
                                  integrator = integrator)
-  
+
   # create stan data
   N = length(state)
   K = length(pars)
@@ -71,7 +104,7 @@ stan_ode <- function(func, state, pars, times, t0 = NULL,
                     T = length(times),
                     y0 = array(unname(state),N),
                     theta = array(unname(pars),K),
-                    ts = times,
+                    ts = array(times, length(times)),
                     t0 = array(t0, length(t0)))
   
   # include event data if applicable
