@@ -1,5 +1,5 @@
 functions {
-  real[] ode(real t, real[] y, real[] theta, real[] x, int[] x_int) {
+  real[] ode_sys(real t, real[] y, real[] theta, real[] x, int[] x_int) {
     #include "user_func.stan"
   }
 }
@@ -18,13 +18,8 @@ transformed data {
   real x[(sampling == 0)? 0 : 1];
   int x_int[(sampling == 0)? 0 : 1];
 }
-model {
-
-}
+model {}
 generated quantities {
   real y_hat[T,N];
-  if (integrator == 0)
-    y_hat = integrate_ode_rk45(ode, y0, t0, ts, theta, x, x_int);
-  else
-    y_hat = integrate_ode_bdf(ode, y0, t0, ts, theta, x, x_int);
+  y_hat = integrate_ode_bdf(ode_sys, y0, t0, ts, theta, x, x_int);
 }

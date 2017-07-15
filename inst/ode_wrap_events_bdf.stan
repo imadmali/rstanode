@@ -1,10 +1,9 @@
 functions {
-  real[] sho(real t, real[] y, real[] theta, real[] x, int[] x_int) {
+  real[] ode_sys(real t, real[] y, real[] theta, real[] x, int[] x_int) {
     #include "user_func.stan"
   }
 }
 data {
-  int<lower=0,upper=1> integrator;
   int<lower=0,upper=1> sampling;
   int<lower=0> N;
   int<lower=0> K;
@@ -23,29 +22,28 @@ transformed data {
   real x[(sampling == 0)? 0 : 1];     // incorrect condition if sampling = TRUE? x_r[0];
   int x_int[(sampling == 0)? 0 : 1];  // incorrect condition if sampling = TRUE? x_i[0];
 }
-model {
-}
+model {}
 generated quantities {
   real y_hat[T,N];
-  if (integrator == 0) {
-    {
-      int pos;
-      pos = 1;
-      for (i in 1:n_seg) {
-        int indx[size(segment(sequence, pos, seg[i]))];
-        real y_init[N];
-        indx = segment(sequence, pos, seg[i]);
-        if (i== 1)
-          y_init = y0;
-        else {
+  {
+    int pos;
+    pos = 1;
+    for (i in 1:n_seg) {
+      int indx[size(segment(sequence, pos, seg[i]))];
+      real y_init[N];
+      indx = segment(sequence, pos, seg[i]);
+      if (i == 1)
+        y_init = y0;
+      else {
+        if (event_type[i-1] == 1)
           y_init = to_array_1d(to_vector(y_hat[pos - 1,]) + to_vector(events[i-1,]));
-        }
-        y_hat[indx,] = integrate_ode_rk45(sho, y_init, t0[i], ts[indx], theta, x, x_int);
-        pos = pos + seg[i];
+        else if (event_type[i-1] == 2)
+          y_init = to_array_1d(to_vector(y_hat[pos - 1,]) .* to_vector(events[i-1,]));
+        else // event_type[i] == 3
+          y_init = events[i-1,];
       }
+      y_hat[indx,] = integrate_ode_bdf(ode_sys, y_init, t0[i], ts[indx], theta, x, x_int);
+      pos = pos + seg[i];
     }
-  }
-  else {
-    reject("bdf not supported")
   }
 }

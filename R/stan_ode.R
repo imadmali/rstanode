@@ -45,49 +45,63 @@
 stan_ode <- function(func, state, pars, times, t0 = NULL,
                     integrator = c("rk45", "bdf"), sampling = FALSE,
                     events = NULL, ...) {
-  # checks
-  if (is.null(t0))
-    t0 <- times[1] - 1e-6
-  if (t0 >= times[1])
-    stop("t0 must be less than times[1]")
+  
+  # deal with start times
+  t0_accuracy <- 1e-6
+  if (is.null(t0)) {
+    if (is.null(events))
+      t0 <- times[1] - t0_accuracy
+    else
+      t0 <- c(times[1], events$time) - t0_accuracy
+  }
 
   # create stan program
   stan_ode_eqns <- stan_lines(func, state, pars, times)
   stan_prog <- stan_ode_generate(stan_ode_eqns,
-                                 has_events = ifelse(is.null(events), FALSE, TRUE))
+                                 has_events = ifelse(is.null(events), FALSE, TRUE),
+                                 integrator = integrator)
   
   # create stan data
-  if (integrator == "rk45")
-    integrator <- 1
-  else 
-    integrator <- 0
-  
-  if (sampling)
-    sampling <- 1
-  else
-    sampling <- 0
-  
   N = length(state)
   K = length(pars)
-  stan_data <- list(integrator = integrator,
-                    sampling = sampling,
+  stan_data <- list(integrator = ifelse(integrator == "rk45", 0, 1),
+                    sampling = ifelse(isTRUE(sampling), 1, 0),
                     N = N,
                     K = K,
                     T = length(times),
                     y0 = array(unname(state),N),
                     theta = array(unname(pars),K),
                     ts = times,
-                    t0 = t0)
+                    t0 = array(t0, length(t0)))
+  
+  # include event data if applicable
+  if (!is.null(events)) {
+    stan_data$sequence <- 1:stan_data$T
+    stan_data$n_seg <- length(stan_data$t0)
+    stan_data$n_events <- nrow(events)
+    stan_data$events <- as.array(as.matrix(events[, names(state)]), dim = c(stan_data$n_events, N))
+    for (i in 1:length(events$time)) {
+      if (i == 1)
+        stan_data$seg <- append(stan_data$seg,
+                                length(which(stan_data$ts < events$time[1])))
+      else
+        stan_data$seg <- append(stan_data$seg,
+                                length(which(stan_data$ts < events$time[i] & stan_data$ts >= events$time[i-1])))
+    }
+    stan_data$seg <- append(stan_data$seg, length(which(stan_data$ts >= events$time[length(events$time)])))
+    stan_data$event_type <- sapply(events$method, function(x){if(x=="add"){1} else if(x=="multiply"){2} else {3}})
+    if (any(stan_data$event_type == 3))
+      stop("Currently 'replace' events are not supported.")
+  }
 
+  # simulate/fit from stan model
   if (sampling == FALSE)
     fit <- rstan::stan(model_code = stan_prog, data = stan_data,
                        algorithm = "Fixed_param", chains = 1, iter = 1, ...)
-    # fit <- rstan::stan(file = paste0(getwd(), unname(stan_prog)), data = stan_data,
-    #                    algorithm = "Fixed_param", chains = 1, iter = 1, ...)
   else
-    stop("samping = TRUE is not supported")
+    stop("Currently samping = TRUE is not supported.")
   
-  # file.remove(paste0(getwd(), unname(stan_prog)))
+  # structure output
   out <- stanode(obj = fit)
   out$simulations <- cbind(times, out$simulations)
   colnames(out$simulations) <- c("time", names(state))

@@ -6,12 +6,19 @@
 #' visually appealing version to be used with \code{cat()}.
 #' @export
 
-stan_ode_generate <- function(obj, has_events) {
+stan_ode_generate <- function(obj, has_events, integrator) {
   n_eqn <- length(obj)
   if (has_events == FALSE)
-    path <- system.file(package = "stanode", "ode_wrap.stan")
-  else
-    path <- system.file(package = "stanode", "ode_wrap_events.stan")
+    if (integrator == "rk45")
+      path <- system.file(package = "stanode", "ode_wrap_rk45.stan")
+    else
+      path <- system.file(package = "stanode", "ode_wrap_bdf.stan")
+  else {
+    if (integrator == "rk45")
+      path <- system.file(package = "stanode", "ode_wrap_events_rk45.stan")
+    else
+      path <- system.file(package = "stanode", "ode_wrap_events_bdf.stan")
+  }
   stan_wrapper <- readLines(path)
   
   sel <- which(stan_wrapper == "    #include \"user_func.stan\"")
