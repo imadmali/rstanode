@@ -71,7 +71,7 @@ legend("bottomright", c("rstanode", "deSolve"), col = c("#FF6688","#336688"),
 ```
 
 <div style="text-align:center">
-<a href="https://raw.githubusercontent.com/imadmali/rstanode/master/Arenstorf.pdf">
-<img src=https://raw.githubusercontent.com/imadmali/rstanode/master/Arenstorf.pdf width=50%/>
+<a href="https://raw.githubusercontent.com/imadmali/rstanode/master/arenstorf.pdf">
+<img src=https://raw.githubusercontent.com/imadmali/rstanode/master/arenstorf.pdf width=50%/>
 </a>
 </div>
