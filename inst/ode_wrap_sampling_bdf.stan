@@ -17,8 +17,7 @@ transformed data {
   real x[0];
   int x_int[0];
 }
-model {}
-generated quantities {
+model {
   real y_hat[T,N];
-  y_hat = integrate_ode_bdf(ode_sys, y0, t0[1], ts, theta, x, x_int);
+  y_hat = integrate_ode_rk45(ode_sys, y0, t0[1], ts, theta, x, x_int);
 }

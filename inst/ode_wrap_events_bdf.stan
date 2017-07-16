@@ -19,8 +19,8 @@ data {
   real events[n_events,N];
 }
 transformed data {
-  real x[(sampling == 0)? 0 : 1];     // incorrect condition if sampling = TRUE? x_r[0];
-  int x_int[(sampling == 0)? 0 : 1];  // incorrect condition if sampling = TRUE? x_i[0];
+  real x[0];
+  int x_int[0];
 }
 model {}
 generated quantities {

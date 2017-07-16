@@ -12,13 +12,16 @@ data {
   real t0[1];
   real ts[T];
   real theta[K];
+  real y[T,N]
 }
 transformed data {
-  real x[(sampling == 0)? 0 : 1];
-  int x_int[(sampling == 0)? 0 : 1];
+  real x[0];
+  int x_int[0];
 }
 model {}
 generated quantities {
   real y_hat[T,N];
   y_hat = integrate_ode_rk45(ode_sys, y0, t0[1], ts, theta, x, x_int);
+  #include "user_likelihood.stan"
+  #include "user_priors.stan"
 }
