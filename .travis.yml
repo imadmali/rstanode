@@ -1,13 +1,15 @@
 language: r
 
-sudo: required
-
 cache: packages
 
 r_build_args: '--no-build-vignettes'
 
 r_packages:
   - covr
+
+env:
+  matrix:
+    - CXX_OLEVEL=2 CXX=clang++
 
 after_success:
   - Rscript -e 'covr::codecov()'
