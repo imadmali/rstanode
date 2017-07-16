@@ -16,6 +16,7 @@ devtools::install_github("imadmali/stanode")
 ### Example
 
 In this example we simulate an [Arenstorf Orbit](https://en.wikipedia.org/wiki/Richard_Arenstorf#The_Arenstorf_Orbit).
+For more examples see [stan_ode.html](https://htmlpreview.github.io/?https://github.com/imadmali/rstanode/blob/master/stan_ode.html)
 
 First define the ODE system as an R function (in this example we are using syntax that corresponds to the R package [deSolve](https://cran.r-project.org/web/packages/deSolve/index.html))
 
@@ -71,7 +72,7 @@ legend("bottomright", c("rstanode", "deSolve"), col = c("#FF6688","#336688"),
 ```
 
 <div style="text-align:center">
-<a href="https://raw.githubusercontent.com/imadmali/rstanode/master/arenstorf.pdf">
-<img src=https://raw.githubusercontent.com/imadmali/rstanode/master/arenstorf.pdf width=50%/>
+<a href="https://raw.githubusercontent.com/imadmali/rstanode/master/ignore/arenstorf.png">
+<img src=https://raw.githubusercontent.com/imadmali/rstanode/master/ignore/arenstorf.png width=50%/>
 </a>
 </div>
