@@ -80,8 +80,8 @@
 #' @import Rcpp methods
 
 stan_ode <- function(func, state, pars, times, t0 = NULL,
-                    integrator = c("rk45", "bdf"), sampling = FALSE,
-                    events = NULL, ...) {
+                    integrator = c("rk45", "bdf"), events = NULL,
+                    sampling = FALSE, y = NULL, likelihoods = NULL, priors = NULL, ...) {
 
   integrator <- match.arg(integrator)
 
@@ -97,11 +97,22 @@ stan_ode <- function(func, state, pars, times, t0 = NULL,
   # create stan program
   stan_lines_stuff <- stan_lines(func, state, pars, times)
   stan_ode_eqns <- stan_lines_stuff$f_out
+  stan_path <- read_stan_file(has_events = ifelse(is.null(events), FALSE, TRUE),
+                              integrator = integrator,
+                              sampling)
   stan_prog <- stan_ode_generate(stan_ode_eqns,
-                                 has_events = ifelse(is.null(events), FALSE, TRUE),
-                                 integrator = integrator,
-                                 n_states = length(state), sampling)
-
+                                 stan_path,
+                                 n_states = length(state))
+  if (isTRUE(sampling)) {
+    ll_nms <- names(likelihoods)
+    prior_nms <- names(priors)
+    likelihood_eqns <- sapply(1:length(ll_nms), function(n){create_likelihood(likelihoods[[n]], ll_nms[n])})
+    prior_eqns <- sapply(1:length(prior_nms), function(n){create_prior(priors[[n]], prior_nms[n], stan_lines_stuff$map)})
+    new_pars <- get_new_pars(names(pars), names(priors))
+    param_dec <- sapply(1:length(new_pars), function(n){create_new_pars(new_pars[n], likelihoods)})
+    stan_prog <- stan_model_generate(stan_prog, likelihood_eqns, prior_eqns, param_dec)
+  }
+  stan_prog <- paste(stan_prog, collapse = "\n")
   # create stan data
   N = length(state)
   K = length(pars)
@@ -134,18 +145,24 @@ stan_ode <- function(func, state, pars, times, t0 = NULL,
     if (any(stan_data$event_type == 3))
       stop("Currently 'replace' events are not supported.")
   }
+  if (isTRUE(sampling)) {
+    stan_data$y <- y
+  }
 
   # simulate/fit from stan model
   if (sampling == FALSE)
     fit <- rstan::stan(model_code = stan_prog, data = stan_data,
                        algorithm = "Fixed_param", chains = 1, iter = 1, ...)
   else
-    stop("Currently samping = TRUE is not supported.")
+    fit <- rstan::stan(model_code = stan_prog, data = stan_data,
+                       algorithm = "NUTS", ...)
 
   # structure output
-  out <- stanode(obj = fit)
-  out$simulations <- cbind(times, out$simulations)
-  colnames(out$simulations) <- c("time", names(state))
+  out <- stanode(obj = fit, sampling)
+  if (!isTRUE(sampling)) {
+    out$simulations <- cbind(times, out$simulations)
+    colnames(out$simulations) <- c("time", names(state))
+  }
 
   structure(out, class = c("stanode"))
   return(out)

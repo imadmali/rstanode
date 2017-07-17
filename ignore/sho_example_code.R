@@ -17,7 +17,9 @@ time_steps <- seq(1, 100, by = 0.001)
 sl <- rstanode:::stan_lines(sho, state = yini,
                pars = pars,
                times = time_steps)
-cat(rstanode:::stan_ode_generate(sl, integrator = "rk45", has_events = FALSE, n_states = 2, sampling = FALSE))
+stan_prg <- rstanode:::read_stan_file(has_events = FALSE, integrator = "rk45", sampling = TRUE)
+stan_prg <- rstanode:::stan_ode_generate(sl$f_out, stan_prg, n_states = 2)
+
 
 sho_rstan_ode <- stan_ode(sho, state = yini,
                 pars = pars,
@@ -26,15 +28,13 @@ sho_rstan_ode <- stan_ode(sho, state = yini,
                 sampling = FALSE)
 sims <- sho_rstan_ode$simulations
 
-stan_data <- list(N = length(yini),
-                  y0 = yini,
-                  t0 = array(1-1e-6,1),
-                  ts = time_steps[1:500],
-                  K = length(pars),
-                  theta = array(pars,length(pars)),
-                  y = sims[1:500,-1])
-stan_data$T <- nrow(stan_data$y)
-
-fit <- stan("ignore/delete_me.stan", data = stan_data, chains = 4, iter = 2e3, cores = 2)
-print(fit)
-traceplot(fit)
+sho_rstanode_fit <- stan_ode(sho, state = yini,
+                          pars = pars,
+                          times = time_steps,
+                          integrator = "rk45",
+                          sampling = TRUE,
+                          y = sims[,-1],
+                          likelihoods = list(y1 = normal(NULL, "sigma"),
+                                             y2 = normal(NULL, "sigma")),
+                          priors = list(theta = cauchy(0,1),
+                                        sigma = normal(0,1)), iter = 100, chains = 4)

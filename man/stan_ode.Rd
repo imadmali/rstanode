@@ -5,7 +5,8 @@
 \title{Simulating/Fitting ODE Systems via Stan}
 \usage{
 stan_ode(func, state, pars, times, t0 = NULL, integrator = c("rk45", "bdf"),
-  sampling = FALSE, events = NULL, ...)
+  events = NULL, sampling = FALSE, y = NULL, likelihoods = NULL,
+  priors = NULL, ...)
 }
 \arguments{
 \item{func}{A function (currently \code{if-else} statements are not supported).}
@@ -20,11 +21,11 @@ stan_ode(func, state, pars, times, t0 = NULL, integrator = c("rk45", "bdf"),
 
 \item{integrator}{The type of integrator to use.}
 
-\item{sampling}{A logical declaration as to whether you want sample the parameters or
-initial state values. The default is \code{FALSE}.}
-
 \item{events}{A dataframe that defines the event schedule in the ODE system.
 See details below.}
+
+\item{sampling}{A logical declaration as to whether you want sample the parameters or
+initial state values. The default is \code{FALSE}.}
 
 \item{...}{Optional parameters for \code{\link[rstan]{stan}}.}
 }
