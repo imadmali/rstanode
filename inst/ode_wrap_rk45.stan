@@ -22,6 +22,5 @@ model {}
 generated quantities {
   real y_hat[T,N];
   y_hat = integrate_ode_rk45(ode_sys, y0, t0[1], ts, theta, x, x_int);
-  #include "user_likelihood.stan"
-  #include "user_priors.stan"
+  #include "user_model.stan"
 }

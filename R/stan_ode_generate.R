@@ -8,8 +8,10 @@
 #' @return A string with the Stan model which can be used in \code{\link[rstan]{stan}}. A more
 #' readable representation of the model can be constructed by applying the
 #' \code{\link[base]{cat}} function to the output.
+#' @param sampling Logical variable indicating whether the user wants to perform sampling.
 #' @seealso \code{\link{stan_lines}}
 #' @examples
+#' \dontrun{
 #' # Define the ODE system as an R function
 #' two_cpt <- function(t, y, parms) {
 #'   with(as.list(c(y, parms)), {
@@ -29,16 +31,25 @@
 #'                  times = time_steps)
 #' # Generate the useable Stan file
 #' cat(stan_ode_generate(sl, has_events = TRUE, integrator = "rk45", n_states = 3))
-#'                 
+#' }           
 #' @export
 
-stan_ode_generate <- function(obj, has_events, integrator, n_states) {
+stan_ode_generate <- function(obj, has_events, integrator, n_states, sampling) {
   n_eqn <- length(obj)
-  if (has_events == FALSE)
-    if (integrator == "rk45")
-      path <- system.file(package = "rstanode", "ode_wrap_rk45.stan")
-    else
-      path <- system.file(package = "rstanode", "ode_wrap_bdf.stan")
+  if (has_events == FALSE) {
+    if (isTRUE(sampling)) {
+      if (integrator == "rk45")
+        path <- system.file(package = "rstanode", "ode_wrap_sampling_rk45.stan")
+      else
+        path <- system.file(package = "rstanode", "ode_wrap_sampling_bdf.stan") 
+    }
+    else {
+      if (integrator == "rk45")
+        path <- system.file(package = "rstanode", "ode_wrap_rk45.stan")
+      else
+        path <- system.file(package = "rstanode", "ode_wrap_bdf.stan") 
+    }
+  }
   else {
     if (integrator == "rk45")
       path <- system.file(package = "rstanode", "ode_wrap_events_rk45.stan")

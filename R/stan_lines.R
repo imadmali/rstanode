@@ -1,8 +1,7 @@
 #' stan_lines
 #' @description Workhorse function that inputs in the ODE system as an R function
-#'  (and associated state variables and parameters) and outputs the analogous
-#'  function in terms of Stan syntax.
-#'  
+#' (and associated state variables and parameters) and outputs the analogous
+#' function in terms of Stan syntax.
 #' @param func A function (currently if-else statements are not supported).
 #' @param state A named vector of the initial conditions of the state variables.
 #' @param pars A named vector of the parameter values.
@@ -51,6 +50,7 @@
 #'            pars = c("theta1" = 0.5, "theta2" = 0.2),
 #'            times = seq(1,10,by=0.01))
 #' }
+#' 
 #' @export
 
 stan_lines <- function(func, state, pars, times) {
@@ -76,5 +76,5 @@ stan_lines <- function(func, state, pars, times) {
                     else
                       paste0("    ", x, ";")
                     }, USE.NAMES = FALSE)
-  return(f_out)
+  return(list(f_out = f_out, map = map))
 }

@@ -42,6 +42,7 @@ test_that("stan_lines works for 1 state and 1 parameter", {
   sl <- stan_lines(f1, state = yini,
                    pars = pars,
                    times = time_steps)
+  sl <- sl$f_out
   truth <- "    dydt[1]=-theta[1]*y[1];"
   expect_equivalent(sl, truth)
 })
@@ -53,6 +54,7 @@ test_that("stan_lines works for multiple states and 1 parameter", {
   sl <- stan_lines(f2, state = yini,
                    pars = pars,
                    times = time_steps)
+  sl <- sl$f_out
   truth <- c("    dydt[1]=y[2];", "    dydt[2]=-y[1]-theta[1]*y[2];")
   expect_equivalent(sl, truth)
 })
@@ -66,6 +68,7 @@ test_that("stan_lines works for multiple states and multiple parameters", {
   sl <- stan_lines(f4, state = yini,
                    pars = pars,
                    times = time_steps)
+  sl <- sl$f_out
   truth <- c("    dydt[1]=-theta[1]*y[1];", "    dydt[2]=theta[1]*y[1]-theta[2]*y[2];")
   expect_equivalent(sl, truth)
 })
@@ -77,6 +80,7 @@ test_that("stan_lines works for a complicated ODE system", {
   sl <- stan_lines(f5, state = yini,
                    pars = pars,
                    times = time_steps)
+  sl <- sl$f_out
   truth <- c("    dydt[1]=-theta[5]*y[1];",
              "    dydt[2]=theta[5]*y[1]-(theta[1]/theta[3]+theta[2]/theta[3])*y[2]+(theta[2]/theta[4])*y[3];",
              "    dydt[3]=(theta[2]/theta[3])*y[2]-(theta[2]/theta[4])*y[3];")
@@ -97,6 +101,7 @@ test_that("stan_lines works when return in ODE function is not named", {
   sl <- stan_lines(f4, state = yini,
                    pars = pars,
                    times = time_steps)
+  sl <- sl$f_out
   truth <- c("    dydt[1]=-theta[1]*y[1];",
              "    dydt[2]=theta[1]*y[1]-theta[2]*y[2];")
   expect_equivalent(sl, truth)
@@ -116,6 +121,7 @@ test_that("stan_lines parses assignment operator within ODE", {
   sl <- stan_lines(f4, state = yini,
                    pars = pars,
                    times = time_steps)
+  sl <- sl$f_out
   truth <- c("    dydt[1]=-theta[1]*y[1];",
              "    dydt[2]=theta[1]*y[1]-theta[2]*y[2];")
   expect_equivalent(sl, truth)
@@ -133,7 +139,7 @@ test_that("stan_lines parses user defined functions within ODE", {
       return(list( c(dy1, dy2, dy3, dy4) ))
     })
   }
-  
+
   mu1 <- 0.012277471
   pars <- c(mu1 = mu1, mu2 = 1 - mu1)
   yini <- c(y1 = 0.994, y2 = 0,
@@ -142,12 +148,13 @@ test_that("stan_lines parses user defined functions within ODE", {
   sl <- stan_lines(Arenstorf, state = yini,
                    pars = pars,
                    times = time_steps)
-  truth <- c("    real D1;",                                                                     
-             "    real D2;",                                                                     
-             "    D1=((y[1]+theta[1])^2.0+y[2]^2.0)^(3.0/2.0);",                                  
-             "    D2=((y[1]-theta[2])^2.0+y[2]^2.0)^(3.0/2.0);",                                 
-             "    dydt[1]=y[3];",                                 
-             "    dydt[2]=y[4];",                                                                
+  sl <- sl$f_out
+  truth <- c("    real D1;",
+             "    real D2;",
+             "    D1=((y[1]+theta[1])^2.0+y[2]^2.0)^(3.0/2.0);",
+             "    D2=((y[1]-theta[2])^2.0+y[2]^2.0)^(3.0/2.0);",
+             "    dydt[1]=y[3];",
+             "    dydt[2]=y[4];",
              "    dydt[3]=y[1]+2.0*y[4]-theta[2]*(y[1]+theta[1])/D1-theta[1]*(y[1]-theta[2])/D2;",
              "    dydt[4]=y[2]-2.0*y[3]-theta[2]*y[2]/D1-theta[1]*y[2]/D2;")
   expect_equivalent(sl, truth)
