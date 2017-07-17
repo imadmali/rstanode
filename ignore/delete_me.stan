@@ -14,7 +14,6 @@ data {
   real y0[N];
   real t0[1];
   real ts[T];
-  real theta[K];
   real y[T,N];
 }
 transformed data {
@@ -22,12 +21,13 @@ transformed data {
   int x_int[0];
 }
 parameters {
-  real beta[K];
+  real theta[K];
   real<lower=0> sigma;
 }
 model {
   real y_hat[T,2];
-  y_hat = integrate_ode_rk45(ode_sys, y0, t0[1], ts, beta, x, x_int);
+  y_hat = integrate_ode_rk45(ode_sys, y0, t0[1], ts, theta, x, x_int);
   y[,1] ~ normal(y_hat[,1], sigma);
   y[,2] ~ normal(y_hat[,2], sigma);
+  theta[1] ~ normal(0, 1);
 }

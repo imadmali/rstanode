@@ -1,11 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^.*\.stan$
-^.*\.R$
-^.*\.Rmd$
-^.*\.html$
-^.*\.pdf$
 ignore/*
-.gitignore
-.travis.yml
-LICENSE
+README.md
+LICENSE$
+^\.travis\.yml$

@@ -15,13 +15,13 @@
 #' See details below.
 #' @param ... Optional parameters for \code{\link[rstan]{stan}}.
 #' @return A list that contains the simulations and the \code{stanfit} object.
-#' 
+#'
 #' @details Currently the user cannot use the event dataframe used in \code{\link[deSolve]{ode}}.
 #' The dimensions of the events dataframe equals [number of events] by [number of state variables
 #' + 2]. There must be a column denoting the \strong{time} of each event, the \strong{method} to
 #' apply to the state variables, and the \strong{value of each state} variable that the user
 #' wants to apply to the last simulated value using the aforementioned method.
-#' 
+#'
 #' Some examples of event schedules are provided below.
 #' The event schedule below is adding 5 to the last simulated state variable y1 in all events
 #' accept for the one at taking place time = 40 where 5 is being added to y1 \emph{and} 2 is
@@ -42,7 +42,7 @@
 #' 30 \tab 1.5 \tab 1 \tab ... \tab multiply
 #' }
 #' @seealso \code{\link[deSolve]{ode}}, \code{\link[rstan]{stan}}.
-#' @examples 
+#' @examples
 #' \dontrun{
 #' # Simple ODE
 #' f <- function(y, t, p) {
@@ -57,32 +57,34 @@
 #'                 sampling = FALSE)
 #' sims <- extract(fit, pars = "y_hat")
 #' sims <- unname(unlist(sims))
-#' 
+#'
 #' # Simple Harmonic Oscillator
 #' sho <- function(y, p ,t) {
 #'   dy1 = y2
 #'   dy2 = -y1 - theta * y2
 #'   return(list(dy1, dy2))
 #' }
-#' 
+#'
 #' fit <- stan_ode(sho, state = c("y1" = 1, "y2" = 0),
 #'                 pars = c("theta" = 0.15),
 #'                 times = seq(1,50,by=0.1), t0 = 0,
 #'                 integrator = "bdf",
 #'                 sampling = FALSE)
-#' 
+#'
 #' sims <- extract(fit, pars = "y_hat")$y_hat[1,,]
 #' plot(sims[,1], sims[,2], type = "l", lwd = 2,
 #'      xlab = "y1", ylab = "y2", main = "Simple Harmonic Oscillator")
 #'}
-#'@export
+#'
+#' @export
+#' @import Rcpp methods
 
 stan_ode <- function(func, state, pars, times, t0 = NULL,
-                    integrator = c("rk45", "bdf"), sampling = FALSE,
-                    events = NULL, ...) {
-  
+                    integrator = c("rk45", "bdf"), events = NULL,
+                    sampling = FALSE, y = NULL, likelihoods = NULL, priors = NULL, ...) {
+
   integrator <- match.arg(integrator)
-  
+
   # deal with start times
   t0_accuracy <- 1e-6
   if (is.null(t0)) {
@@ -93,12 +95,24 @@ stan_ode <- function(func, state, pars, times, t0 = NULL,
   }
 
   # create stan program
-  stan_ode_eqns <- stan_lines(func, state, pars, times)
+  stan_lines_stuff <- stan_lines(func, state, pars, times)
+  stan_ode_eqns <- stan_lines_stuff$f_out
+  stan_path <- read_stan_file(has_events = ifelse(is.null(events), FALSE, TRUE),
+                              integrator = integrator,
+                              sampling)
   stan_prog <- stan_ode_generate(stan_ode_eqns,
-                                 has_events = ifelse(is.null(events), FALSE, TRUE),
-                                 integrator = integrator,
+                                 stan_path,
                                  n_states = length(state))
-
+  if (isTRUE(sampling)) {
+    ll_nms <- names(likelihoods)
+    prior_nms <- names(priors)
+    likelihood_eqns <- sapply(1:length(ll_nms), function(n){create_likelihood(likelihoods[[n]], ll_nms[n])})
+    prior_eqns <- sapply(1:length(prior_nms), function(n){create_prior(priors[[n]], prior_nms[n], stan_lines_stuff$map)})
+    new_pars <- get_new_pars(names(pars), names(priors))
+    param_dec <- sapply(1:length(new_pars), function(n){create_new_pars(new_pars[n], likelihoods)})
+    stan_prog <- stan_model_generate(stan_prog, likelihood_eqns, prior_eqns, param_dec)
+  }
+  stan_prog <- paste(stan_prog, collapse = "\n")
   # create stan data
   N = length(state)
   K = length(pars)
@@ -111,7 +125,7 @@ stan_ode <- function(func, state, pars, times, t0 = NULL,
                     theta = array(unname(pars),K),
                     ts = array(times, length(times)),
                     t0 = array(t0, length(t0)))
-  
+
   # include event data if applicable
   if (!is.null(events)) {
     stan_data$sequence <- 1:stan_data$T
@@ -131,18 +145,24 @@ stan_ode <- function(func, state, pars, times, t0 = NULL,
     if (any(stan_data$event_type == 3))
       stop("Currently 'replace' events are not supported.")
   }
+  if (isTRUE(sampling)) {
+    stan_data$y <- y
+  }
 
   # simulate/fit from stan model
   if (sampling == FALSE)
     fit <- rstan::stan(model_code = stan_prog, data = stan_data,
                        algorithm = "Fixed_param", chains = 1, iter = 1, ...)
   else
-    stop("Currently samping = TRUE is not supported.")
-  
+    fit <- rstan::stan(model_code = stan_prog, data = stan_data,
+                       algorithm = "NUTS", ...)
+
   # structure output
-  out <- stanode(obj = fit)
-  out$simulations <- cbind(times, out$simulations)
-  colnames(out$simulations) <- c("time", names(state))
+  out <- stanode(obj = fit, sampling)
+  if (!isTRUE(sampling)) {
+    out$simulations <- cbind(times, out$simulations)
+    colnames(out$simulations) <- c("time", names(state))
+  }
 
   structure(out, class = c("stanode"))
   return(out)
