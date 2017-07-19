@@ -24,7 +24,7 @@ before_install:
 script:
   - |
     travis_wait 42 R CMD build .
-    travis_wait 59 R CMD check rstanarm*tar.gz
+    travis_wait 59 R CMD check rstanode*tar.gz
 
 after_success:
   - travis_wait 30 Rscript -e 'covr::codecov()'
